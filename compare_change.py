@@ -10,17 +10,21 @@ import ast
 
 def wikitext_of_interest(wikitext):
     interests = set()
-    wikicode = mwparserfromhell.parse(wikitext)
-    #is it in a template of doi=xxxx style?
-    for template in wikicode.filter_templates():
-        for param in template.params:
-            if param.name.encode('utf-8').strip().lower() == 'doi':
-                interests.add(param.value.strip())
-    #is it in a  wikilink of [[doi:xxxx]] style?
-    for link in wikicode.filter_wikilinks():
-        link_parts = link.title.split(':')
-        if link_parts[0].lower() == 'doi':
-            interests.add(link_parts[1].split())
+    try:
+        wikicode = mwparserfromhell.parse(wikitext)
+        #is it in a template of doi=xxxx style?
+        for template in wikicode.filter_templates():
+            for param in template.params:
+                if param.name.encode('utf-8').strip().lower() == 'doi':
+                    interests.add(param.value.strip())
+        #is it in a  wikilink of [[doi:xxxx]] style?
+        for link in wikicode.filter_wikilinks():
+            #interests.add(link.title) #remove this when ready to get DOIs only.
+            link_parts = link.title.split(':')
+            if link_parts[0].lower() == 'doi':
+                interests.add(link_parts[1].strip())
+    except RuntimeError:
+        pass
     return interests
     
     
@@ -35,9 +39,11 @@ def single_comparator(page):
         try:
             wikitext = redir_target.get()
         except:
-            pass
+            return None
+            #log this
     except pywikibot.exceptions.NoPage:
-        pass
+        return None
+        #log this
 
     interests = wikitext_of_interest(wikitext)
     comparands['added'] = list(interests)
@@ -78,47 +84,60 @@ def make_family(server_name):
         return parts[0], parts[1]
 
 def get_changes(rcdict):
+    '''Get the changes of dois that occured in an rcdict
+    @returns dict of lists of 'added' or 'deleted' dois
+    or None if there was an error (like deleted history).
+    Also handles newly created pages.
+    '''
     server_name = rcdict['server_name']
     lang, fam = make_family(server_name)
     #if it's an edit
     if rcdict['type'] == 'edit':
-        from_rev, to_rev = rcdict['revision']['old'], rcdict['revision']['new']
-        api_to_hit = pywikibot.Site(lang, fam)
-        comparison_response = api_to_hit.compare(from_rev, to_rev)
-        comparison_string = comparison_response['compare']['*']
-        return comparator(comparison_string)
+        try:
+            from_rev, to_rev = rcdict['revision']['old'], rcdict['revision']['new']
+            api_to_hit = pywikibot.Site(lang, fam)
+            comparison_response = api_to_hit.compare(from_rev, to_rev)
+            comparison_string = comparison_response['compare']['*']
+            return comparator(comparison_string)
+        except pywikibot.data.api.APIError:
+            return 'API Error'
+        except Excpetion as e:
+            print rcdict
     #if its a new page
     if rcdict['type'] == 'new':
         title = rcdict['title']
         api_to_hit = pywikibot.Site(lang, fam)
-        page = pywikibot.Page(api_to_hit, title) 
+        page = pywikibot.Page(api_to_hit, title)
         return single_comparator(page)
     #log this or do something else
     if rcdict['type'] == 'log':
-        pass #log
+        return 'Logging Event'
+        pass #log for now
+    else:
+        return 'Not an edit, new page, or logging event'
+        
 
     
     
 if __name__ == '__main__':
     #test
+
+    print get_changes({u'comment': u'sp, replaced: Bogomolov Jr. \u2192 Bogomolov jr. (5), Santiago Ventura Bertomeu \u2192 Santiago Ventura met [[Project:AWB|AWB]]', u'wiki': u'nlwiki', u'type': u'edit', u'server_name': u'nl.wikipedia.org', u'server_script_path': u'/w', u'timestamp': 1420063846, u'title': u'ATP-toernooi van Newport 2009', u'namespace': 0, u'server_url': u'http://nl.wikipedia.org', u'length': {u'new': 10649, u'old': 10658}, u'user': u'Den Hieperboree', u'patrolled': False, u'bot': False, u'id': 66286621, u'minor': False, u'revision': {u'new': 42892757, u'old': 36109902}})
+    print get_changes({'revision':{'old':638680435,'new':638682695}, 'server_name':'en.wikipedia.org', 'type':'edit'})
+    print get_changes({'revision':{'old':638680344,'new':638680435}, 'server_name':'en.wikipedia.org', 'type':'edit'})
+    print get_changes({'revision':{'old':None,'new':638680344}, 'server_name':'en.wikipedia.org', 'type':'new', 'title':'User:Maximilianklein/cocytusbox'})
+    print get_changes({'revision':{'old':639823863,'new':640446344}, 'server_name':'en.wikipedia.org', 'type':'edit'})
+
     '''
-    print compare({'revision':{'old':638680435,'new':638682695}, 'server_name':'en.wikipedia.org'})
-    print compare({'revision':{'old':638680344,'new':638680435}, 'server_name':'en.wikipedia.org'})
-    print compare({'revision':{'old':None,'new':638680344}, 'server_name':'en.wikipedia.org'})
-    '''
-    
     testfile = open('dumps.txt','r')
     lines = testfile.readlines()
     
     output = []
     for line in lines:
         rcdict = ast.literal_eval(line)
-        try:
-            result = get_changes(rcdict)
-        except Exception as e:
-            print e
-            print rcdict
+        result = get_changes(rcdict)
+            #log
         if result:
             output.append(result)
             json.dump(output, open('munged.json','w'))
-    
+    '''
