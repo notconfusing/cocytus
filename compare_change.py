@@ -6,6 +6,9 @@ import re
 import json
 import ast
 
+import logging
+logging.basicConfig(filename='compare_change.log', level=logging.INFO)
+
 #print(pywikibot.__file__)
 
 def wikitext_of_interest(wikitext):
@@ -98,24 +101,30 @@ def get_changes(rcdict):
             api_to_hit = pywikibot.Site(lang, fam)
             comparison_response = api_to_hit.compare(from_rev, to_rev)
             comparison_string = comparison_response['compare']['*']
-            return comparator(comparison_string)
+            rcdict['doi'] = comparator(comparison_string)
+            return rcdict
         except pywikibot.data.api.APIError:
-            return 'API Error'
-        except Excpetion as e:
-            print rcdict
+            logging.debug('api error' + str(rcdict))
+            return rcdict
+        except BaseException as e:
+            print e, rcdict
+            logging.debug('other error' +str(rcdict))
+            return rcdict
+            #pass
     #if its a new page
     if rcdict['type'] == 'new':
         title = rcdict['title']
         api_to_hit = pywikibot.Site(lang, fam)
         page = pywikibot.Page(api_to_hit, title)
-        return single_comparator(page)
+        rcdict['doi'] = single_comparator(page)
+        return rcdict
     #log this or do something else
     if rcdict['type'] == 'log':
-        return 'Logging Event'
-        pass #log for now
+        logging.debug("logging_event" + str(rcdict))
+        return rcdict
     else:
-        return 'Not an edit, new page, or logging event'
-        
+        logging.debug('Not an edit, new page, or logging event '+str(rcdict))
+        return rcdict
 
     
     
