@@ -92,8 +92,12 @@ def get_changes(rcdict):
     or None if there was an error (like deleted history).
     Also handles newly created pages.
     '''
-    server_name = rcdict['server_name']
-    lang, fam = make_family(server_name)
+    try:
+        server_name = rcdict['server_name']
+        lang, fam = make_family(server_name)
+    except pywikibot.exceptions.UnknownFamily:
+        logging.debug("probably couldn't make family" + str(rcdict))
+        return rcdict
     #if it's an edit
     if rcdict['type'] == 'edit':
         try:
