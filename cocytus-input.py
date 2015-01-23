@@ -1,16 +1,17 @@
 from rq import Queue
 from redis import Redis
+import compare_change
+import socketIO_client
 
 import logging
-logging.basicConfig(filename='input.log', level=logging.INFO)
 
+logging.basicConfig(filename='input.log', level=logging.INFO, format='%(asctime)s %(message)s')
+
+logging.info('program launched')
 redis_con = Redis(host="tools-redis")
 
 queue = Queue('changes', connection = redis_con)
-
-import compare_change
-
-import socketIO_client
+logging.info('redis connected')
 
 class WikiNamespace(socketIO_client.BaseNamespace):
 	def on_change(self, change):
@@ -22,5 +23,6 @@ class WikiNamespace(socketIO_client.BaseNamespace):
 
 socketIO = socketIO_client.SocketIO(u'stream.wikimedia.org', 80)
 socketIO.define(WikiNamespace, u'/rc')
+
 
 socketIO.wait()

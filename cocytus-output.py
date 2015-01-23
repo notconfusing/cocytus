@@ -9,9 +9,12 @@ from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 from rq import Queue
 from redis import Redis
 
-import logging
-logging.basicConfig(filename='output-results.log', level=logging.INFO)
+from crossref_push import push_to_crossref
 
+import logging
+logging.basicConfig(filename='output.log', level=logging.INFO,  format='%(asctime)s %(message)s')
+logging.info('process started')
+logging.info(str(__name__))
 pwblogger = logging.getLogger("pywiki")
 pwbf = logging.Filter("pywiki")
 pwbf.filter = lambda record: False
@@ -32,20 +35,28 @@ class WikiCiteServer(ApplicationSession):
 				self.publish(u'com.cocytus.onchange', change)
 			yield sleep(1)
 
-if __name__ == "__main__":
-	from autobahn.twisted.wamp import ApplicationRunner
-	#runner = ApplicationRunner(url = "ws://localhost:12345/citeserver", realm = "realm1")
-	#runner.run(WikiCiteServer)
-	while True:
-		job = queue.dequeue()
-		if job is None:
-			logging.debug(u'No job found yet, sleeping')
-			time.sleep(0.01)
-			continue
-		if job.result is None:
-			logging.debug(u'Job not executed yet; executing: '+str(job))
-			job.perform()
-		if 'doi' in job.result and isinstance(job.result['doi'], dict) and (job.result['doi']['added'] or job.result['doi']['deleted']): # then one is not empty
-			logging.info(u'change detected: '+str(job.result))
-		else: # then both are empty
-			logging.debug(u'no change detected.')
+#from autobahn.twisted.wamp import ApplicationRunner
+#runner = ApplicationRunner(url = "ws://0.0.0.0:12345/citeserver", realm = "realm1")
+#runner.run(WikiCiteServer) # this doesn't return
+
+while True:
+	job = queue.dequeue()
+	if job is None:
+		logging.debug(u'No job found yet, sleeping')
+		time.sleep(0.1)
+		continue
+	if job.result is None:
+		logging.debug(u'Job not executed yet; executing: '+str(job))
+		job.perform()
+	
+	print(str(job.result))
+	if 'doi' in job.result and isinstance(job.result['doi'], dict) and (job.result['doi']['added'] or job.result['doi']['deleted']): # then one is not empty
+		logging.info(u'change detected: '+str(job.result))
+		#and we have something intriquing to push to crossref
+		print("pushing to crossref")
+		crossref_response = push_to_crossref(job.results)
+		logging.info('pushed to crossref: ' + str(job.result))
+		logging.info('crossref response was:' + str(response))
+		print("crossref response: " + str(response))
+	else: # then both are empty
+		logging.debug(u'no change detected.')
