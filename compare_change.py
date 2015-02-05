@@ -3,6 +3,7 @@ import pywikibot
 from bs4 import BeautifulSoup
 import mwparserfromhell
 import re
+DOI_RE = re.compile(r'(10\.\d+/[\S]+)')
 import json
 import ast
 
@@ -11,24 +12,39 @@ logging.basicConfig(filename='compare_change.log', level=logging.INFO)
 
 #print(pywikibot.__file__)
 
-def wikitext_of_interest(wikitext):
+def get_dois_regex(wikicode):
+    wikitree = wikicode.get_tree().split('\n')
+    found = filter(lambda l: l, [re.findall(DOI_RE, line) for line in wikitree])
+    return reduce(lambda a, b: a.union(b), map(lambda l: set(l), found), set()) #intizalizer is seempty set
+
+def get_dois_template(wikicode):
     interests = set()
+    #is it in a template of doi=xxxx style?
+    for template in wikicode.filter_templates():
+        for param in template.params:
+            if param.name.encode('utf-8').strip().lower() == 'doi':
+                interests.add(param.value.strip())
+    return interests
+
+def get_dois_extlink(wikicode):
+    interests = set()
+    #is it in a  wikilink of [[doi:xxxx]] style?
+    for link in wikicode.filter_wikilinks():
+        link_parts = link.title.split(':')
+        if link_parts[0].lower() == 'doi':
+            interests.add(link_parts[1].strip())
+    return interests
+
+def wikitext_of_interest(wikitext):
+    agg_interests = set()
+    check_methods = get_dois_regex, get_dois_template, get_dois_extlink
     try:
         wikicode = mwparserfromhell.parse(wikitext)
-        #is it in a template of doi=xxxx style?
-        for template in wikicode.filter_templates():
-            for param in template.params:
-                if param.name.encode('utf-8').strip().lower() == 'doi':
-                    interests.add(param.value.strip())
-        #is it in a  wikilink of [[doi:xxxx]] style?
-        for link in wikicode.filter_wikilinks():
-            #interests.add(link.title) #remove this when ready to get DOIs only.
-            link_parts = link.title.split(':')
-            if link_parts[0].lower() == 'doi':
-                interests.add(link_parts[1].strip())
+        for check_method in check_methods:
+            agg_interests.update(check_method(wikicode))
     except RuntimeError:
         pass
-    return interests
+    return agg_interests
     
     
 def single_comparator(page):
@@ -117,11 +133,14 @@ def get_changes(rcdict):
             #pass
     #if its a new page
     if rcdict['type'] == 'new':
-        title = rcdict['title']
-        api_to_hit = pywikibot.Site(lang, fam)
-        page = pywikibot.Page(api_to_hit, title)
-        rcdict['doi'] = single_comparator(page)
-        return rcdict
+        try:
+            title = rcdict['title']
+            api_to_hit = pywikibot.Site(lang, fam)
+            page = pywikibot.Page(api_to_hit, title)
+            rcdict['doi'] = single_comparator(page)
+            return rcdict
+        except pywikibot.exceptions:
+            return rcdict
     #log this or do something else
     if rcdict['type'] == 'log':
         logging.debug("logging_event" + str(rcdict))
