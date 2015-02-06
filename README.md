@@ -32,6 +32,10 @@ You'll need to have Redis Queue (rq) and autobahn[twisted] and crossbar installe
 You'll also want to have wikimedia labs compatible (Sun Grid Engine compatible) job scripting
 since our highest level scripts use grid engine to manage the jobs.
 
+Launching
+---------
+---------
+
 + start up the redis server (If you're running on wikimedia labs this is already running on tools-redis.)
 + start up crossbar using the config in the 'changes' directory
 + run submit-cocytus.sh to get the queue workers working and start pushing the input to the POST endpoint
