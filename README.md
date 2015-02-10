@@ -61,3 +61,4 @@ Logs will go into the `logs` subdirectory of where the processes are launched.
 + listening for and publishing arbitrary changes
 + summary information about changes
 + natural language modelling of changing wikipedia discourse informed by changes stream
++ investigate halfak's [high performance regex parser](https://github.com/halfak/Extract-scholarly-article-citations-from-Wikipedia/blob/master/mwcites/extractors/doi.py)
