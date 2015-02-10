@@ -8,12 +8,14 @@ We are changing a __diff stream__ into a __citation delta__ stream.
 + to make queue of diffs to be inspected
 + Keep a database table of the latest version we have seen so far
 + call the wikimedia api to fetch the diff text
++ call the Wikimedia API to fetch the diff text
 + see if the diff involves adding or removing a DOI or other citation identifier
   + we do this in three different ways:
 	1. run a regex on the diff text
 	1. look for `doi=xxx` patterns in templates
 	1. look for `[[doi:xxx]]` external links.
-+ then for each change found we push that change to crossref in `crossref_push.py`
++ then for each change found we push that change to crossref in `crossref_push.py` with information
+    + Idenfifier, delta direction, provenance page, page metadata
     + which can be viewed at [crossreflabs](http://events.labs.crossref.org/events/types/WikipediaCitation)
 
 # How to run it
