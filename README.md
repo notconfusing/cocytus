@@ -1,7 +1,7 @@
 This is the Cocytus project for tracking citations on Wikipedia.
 
-How it Works
-------------
+# How it Works
+
 We are changing a __diff stream__ into a __citation delta__ stream.
 
 + we use the [recent changes stream](https://wikitech.wikimedia.org/wiki/RCStream)
@@ -16,12 +16,10 @@ We are changing a __diff stream__ into a __citation delta__ stream.
 + then for each change found we push that change to crossref in `crossref_push.py`
     + which can be viewed at [crossreflabs](http://events.labs.crossref.org/events/types/WikipediaCitation)
 
-How to run it
--------------
+# How to run it
 
-Configuration
--------------
--------------
+## Configuration
+
 + virtualenv
   we use a virtualenv for this project. If it's ever assumed the env should be located at ~/c-env
 
@@ -32,18 +30,32 @@ You'll need to have Redis Queue (rq) and autobahn[twisted] and crossbar installe
 You'll also want to have wikimedia labs compatible (Sun Grid Engine compatible) job scripting
 since our highest level scripts use grid engine to manage the jobs.
 
-Launching
----------
----------
++ config files
+  + There are two config files, one is not in the repository because it contains secret information, so you must add it.
+  + PUSH_TOKEN is the secret config file containing the token used to POST results to crossref. It should contain an assignment to the variable `PUSH_TOKEN_SECRET`
+  + config.py contains all other configuration information and has sensible defaults for running on wikimedia labs
 
-+ start up the redis server (If you're running on wikimedia labs this is already running on tools-redis.)
-+ start up crossbar using the config in the 'changes' directory
-+ run submit-cocytus.sh to get the queue workers working and start pushing the input to the POST endpoint
+## Launching
 
-If you want to manually manage the jobs the flow goes like this:
++ First steps
+  + start up the redis server (If you're running on wikimedia labs this is already running on tools-redis.)
 
-+ start cocytus-input.py and background the job (this listens on RCstream and fills the queue with jobs that fetch diff info)
-+ start an rqworker on the 'changes' queue and background the job
-+ start cocytus-output.py and background the job (this serves the fetched diff info)
-+ start cocytus-client.py (this connects to the cocytus-output server and shows what it is serving)
++ If you are using Sun Grid Engine or the like which is available on wikimedia labs:
+  + `bash submit-cocytus.sh` will start four workers on each of the main work queue and the failure queue; this is a sensible number to keep up with changes
+  + `bash killgrid.sh` will delete all the current users jobs which will stop the queue workers
 
++ If you want to manually manage the jobs instead of using the Grid Engine the flow goes like this (see `submit-cocytus.sh` for relevant job parameters:
+  + start cocytus-input.py and background the job (this listens on RCstream and fills the queue with jobs that fetch diff info)
+  + start an rqworker on the 'changes' queue and background the job (this asynchronously fetches and processes changes associated with edits and puts the results back in the queue)
+  + start cocytus-output.py and background the job (this POSTs the processed info to the endpoint)
+
+# Running
+
+Logs will go into the `logs` subdirectory of where the processes are launched.
+
+# Future work
++ Get changes directly from the redis changes queue instead of the RC stream
++ publish a websocket or pubsubhubub stream in addition to or instead of pushing changes with HTTP POSTs
++ listening for and publishing arbitrary changes
++ summary information about changes
++ natural language modelling of changing wikipedia discourse informed by changes stream

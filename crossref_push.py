@@ -1,16 +1,15 @@
 import requests
+import urllib
 from PUSH_TOKEN_SECRET import PUSH_TOKEN
-
-PUSH_API_URL="http://events.labs.crossref.org/api/push"
-PUSH_TYPE="WikipediaCitation"
-PUSH_SOURCE="Cocytus"
-
+from config import *
 
 def push_to_crossref(rcdict):
     for  addremove, doi_list in rcdict['doi'].iteritems():
         for doi in doi_list:
             action = {'added':'add','deleted':'remove'}[addremove]
-            article_url = rcdict['server_url'] + '/wiki/' + rcdict['title']
+            server_url = rcdict['server_url']
+            safe_title = urllib.quote(rcdict['title'].encode('utf-8'))
+            article_url = url = "{server_url}/wiki/{safe_title}".format(server_url=server_url, safe_title=safe_title) 
             timestamp = rcdict['timestamp']
 
             response = requests.post(PUSH_API_URL, json={"doi": doi,

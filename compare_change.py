@@ -8,9 +8,10 @@ import json
 import ast
 
 import logging
-logging.basicConfig(filename='compare_change.log', level=logging.INFO)
 
-#print(pywikibot.__file__)
+def heartbeat():
+	"""This is simply a signal that the service is still running and gets slipped into the queue periodically by cocytus-input."""
+        return dict(type = "heartbeat", heartbeat = "Cocytus service is running: "+strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()))
 
 def get_dois_regex(wikicode):
     wikitree = wikicode.get_tree().split('\n')
@@ -111,42 +112,37 @@ def get_changes(rcdict):
     try:
         server_name = rcdict['server_name']
         lang, fam = make_family(server_name)
-    except pywikibot.exceptions.UnknownFamily:
-        logging.debug("probably couldn't make family" + str(rcdict))
-        return rcdict
-    #if it's an edit
-    if rcdict['type'] == 'edit':
-        try:
+        #if it's an edit
+
+        if rcdict['type'] == 'edit':
             from_rev, to_rev = rcdict['revision']['old'], rcdict['revision']['new']
             api_to_hit = pywikibot.Site(lang, fam)
             comparison_response = api_to_hit.compare(from_rev, to_rev)
             comparison_string = comparison_response['compare']['*']
             rcdict['doi'] = comparator(comparison_string)
             return rcdict
-        except pywikibot.data.api.APIError:
-            logging.debug('api error' + str(rcdict))
-            return rcdict
-        except BaseException as e:
-            print e, rcdict
-            logging.debug('other error' +str(rcdict))
-            return rcdict
-            #pass
-    #if its a new page
-    if rcdict['type'] == 'new':
-        try:
+        #if its a new page
+        if rcdict['type'] == 'new':
             title = rcdict['title']
             api_to_hit = pywikibot.Site(lang, fam)
             page = pywikibot.Page(api_to_hit, title)
             rcdict['doi'] = single_comparator(page)
             return rcdict
-        except pywikibot.exceptions:
+        #log this or do something else
+        if rcdict['type'] == 'log':
+            logging.debug("logging_event" + str(rcdict))
             return rcdict
-    #log this or do something else
-    if rcdict['type'] == 'log':
-        logging.debug("logging_event" + str(rcdict))
+        if rcdict['type'] == 'heartbeat':
+            logging.debug("heartbeat" + str(rcdict))
+            return rcdict
+        else:
+            logging.debug('Not an edit, new page, or logging event '+str(rcdict))
+            return rcdict
+    except pywikibot.data.api.APIError as e:
+        logging.debug(e.message + str(rcdict))
         return rcdict
-    else:
-        logging.debug('Not an edit, new page, or logging event '+str(rcdict))
+    except Exception as e:
+        logging.debug(e.message + str(rcdict))
         return rcdict
 
     
