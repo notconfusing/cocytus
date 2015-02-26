@@ -61,6 +61,7 @@ while True:
 		logging.info('crossref response was:' + str(crossref_response))
 		print("crossref response: " + str(crossref_response))
 	elif type(job.result) == dict and job.result["type"] == "heartbeat":
+		logging.info("pushing heartbeat")
 		push_to_crossref(job.result)
 	else:
 		logging.debug(u'no change detected.')

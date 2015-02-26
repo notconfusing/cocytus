@@ -8,7 +8,7 @@ import logging
 from config import REDIS_LOCATION, HEARTBEAT_INTERVAL
 
 logging.basicConfig(filename='logs/input.log', level=logging.INFO, format='%(asctime)s %(message)s')
-logging.info('program launched')
+logging.info('cocytus-input launched')
 
 
 redis_con = Redis(host=REDIS_LOCATION)
@@ -19,8 +19,8 @@ logging.info('redis connected')
 alarm_interval = HEARTBEAT_INTERVAL # 10 minutes, in prime seconds
 
 def alarm_handle(signal_number, current_stack_frame):
-	queue.enqueue(heartbeat)
-	
+	queue.enqueue(compare_change.heartbeat)
+	logging.info('enqueued heartbeat')
 	signal.alarm(alarm_interval)
 
 signal.signal(signal.SIGALRM, alarm_handle)
@@ -35,7 +35,8 @@ class WikiNamespace(socketIO_client.BaseNamespace):
 			try:
                         	queue.enqueue(compare_change.get_changes, change)
 				break
-			except redis.exceptions:
+			except Exception as e:
+				logging.error(e.message)
 				time.sleep(1.0)
 
 	def on_connect(self):
