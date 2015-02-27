@@ -2,51 +2,18 @@
 import pywikibot
 from bs4 import BeautifulSoup
 import mwparserfromhell
-import re
-DOI_RE = re.compile(r'(10\.\d+/[\S]+)')
 import json
 import ast
 import time
 import logging
+import mwcites.extractors.doi
 
 def heartbeat():
 	"""This is simply a signal that the service is still running and gets slipped into the queue periodically by cocytus-input."""
         return dict(type = "heartbeat", heartbeat = "Cocytus service is running: "+time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime()))
 
-def get_dois_regex(wikicode):
-    wikitree = wikicode.get_tree().split('\n')
-    found = filter(lambda l: l, [re.findall(DOI_RE, line) for line in wikitree])
-    return reduce(lambda a, b: a.union(b), map(lambda l: set(l), found), set()) #intizalizer is seempty set
-
-def get_dois_template(wikicode):
-    interests = set()
-    #is it in a template of doi=xxxx style?
-    for template in wikicode.filter_templates():
-        for param in template.params:
-            if param.name.encode('utf-8').strip().lower() == 'doi':
-                interests.add(param.value.strip())
-    return interests
-
-def get_dois_extlink(wikicode):
-    interests = set()
-    #is it in a  wikilink of [[doi:xxxx]] style?
-    for link in wikicode.filter_wikilinks():
-        link_parts = link.title.split(':')
-        if link_parts[0].lower() == 'doi':
-            interests.add(link_parts[1].strip())
-    return interests
-
 def wikitext_of_interest(wikitext):
-    agg_interests = set()
-    check_methods = get_dois_regex, get_dois_template, get_dois_extlink
-    try:
-        wikicode = mwparserfromhell.parse(wikitext)
-        for check_method in check_methods:
-            agg_interests.update(check_method(wikicode))
-    except RuntimeError:
-        pass
-    return agg_interests
-    
+    return set(ident.id for ident in mwcites.extractors.doi.extract(wikitext))
     
 def single_comparator(page):
     comparands = {'deleted': [] , 'added': []}
