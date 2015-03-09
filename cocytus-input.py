@@ -1,6 +1,6 @@
 from rq import Queue
 from redis import Redis
-import compare_change
+import crossref_push
 import socketIO_client
 import time
 import signal
@@ -19,7 +19,7 @@ logging.info('redis connected')
 alarm_interval = HEARTBEAT_INTERVAL # 10 minutes, in prime seconds
 
 def alarm_handle(signal_number, current_stack_frame):
-	queue.enqueue(compare_change.heartbeat)
+	queue.enqueue(crossref_push.heartbeat)
 	logging.info('enqueued heartbeat')
 	signal.alarm(alarm_interval)
 
