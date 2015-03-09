@@ -1,5 +1,6 @@
 from rq import Queue
 from redis import Redis
+import compare_change
 import crossref_push
 import socketIO_client
 import time
