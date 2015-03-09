@@ -9,10 +9,6 @@ import ast
 import time
 import logging
 
-def heartbeat():
-	"""This is simply a signal that the service is still running and gets slipped into the queue periodically by cocytus-input."""
-        return dict(type = "heartbeat", heartbeat = "Cocytus service is running: "+time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime()))
-
 def get_dois_regex(wikicode):
     wikitree = wikicode.get_tree().split('\n')
     found = filter(lambda l: l, [re.findall(DOI_RE, line) for line in wikitree])
