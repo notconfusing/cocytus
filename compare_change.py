@@ -75,6 +75,8 @@ def get_changes(rcdict):
     try:
         server_name = rcdict['server_name']
         lang, fam = make_family(server_name)
+        if 'timestamp' in rcdict:
+            rcdict['time'] = time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime(rcdict['timestamp']))
         #if it's an edit
 
         if rcdict['type'] == 'edit':
@@ -83,24 +85,19 @@ def get_changes(rcdict):
             comparison_response = api_to_hit.compare(from_rev, to_rev)
             comparison_string = comparison_response['compare']['*']
             rcdict['doi'] = comparator(comparison_string)
-            return rcdict
         #if its a new page
         if rcdict['type'] == 'new':
             title = rcdict['title']
             api_to_hit = pywikibot.Site(lang, fam)
             page = pywikibot.Page(api_to_hit, title)
             rcdict['doi'] = single_comparator(page)
-            return rcdict
         #log this or do something else
         if rcdict['type'] == 'log':
             logging.debug("logging_event" + str(rcdict))
-            return rcdict
-        if rcdict['type'] == 'heartbeat':
-            logging.debug("heartbeat" + str(rcdict))
-            return rcdict
         else:
             logging.debug('Not an edit, new page, or logging event '+str(rcdict))
-            return rcdict
+        return rcdict
+
     except pywikibot.data.api.APIError as e:
         logging.debug(e.message + str(rcdict))
         return rcdict
