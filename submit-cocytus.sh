@@ -11,7 +11,7 @@ done
 #launch somes workers on changes
 for worker in {changes,failed}
 do
-    for i in {1..4}
+    for i in {1..12}
     do
 	jstart -m ae -N "$worker$i" -mem 2g -e /data/project/cocytus/logs -o /data/project/cocytus/logs /data/project/cocytus/c-env/bin/rqworker -H tools-redis $worker
     done
