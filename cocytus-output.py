@@ -23,6 +23,7 @@ pwblogger.addFilter(pwbf)
 
 alarm_interval = HEARTBEAT_INTERVAL # 10 minutes, in prime seconds
 
+import signal
 def alarm_handle(signal_number, current_stack_frame):
 	crossref_push.output_heartbeat
 	logging.info('pushed output heartbeat')
