@@ -9,7 +9,7 @@ from autobahn.twisted.wamp import ApplicationSession, ApplicationRunner
 
 from rq import Queue
 from redis import Redis
-from config import REDIS_LOCATION
+from config import REDIS_LOCATION, HEARTBEAT_INTERVAL
 
 from crossref_push import push_to_crossref
 
@@ -20,6 +20,17 @@ pwblogger = logging.getLogger("pywiki")
 pwbf = logging.Filter("pywiki")
 pwbf.filter = lambda record: False
 pwblogger.addFilter(pwbf)
+
+alarm_interval = HEARTBEAT_INTERVAL # 10 minutes, in prime seconds
+
+def alarm_handle(signal_number, current_stack_frame):
+	crossref_push.output_heartbeat
+	logging.info('pushed output heartbeat')
+	signal.alarm(alarm_interval)
+
+signal.signal(signal.SIGALRM, alarm_handle)
+signal.siginterrupt(signal.SIGALRM, False)
+signal.alarm(alarm_interval)
 
 redis_con = Redis(REDIS_LOCATION)
 
