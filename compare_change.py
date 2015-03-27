@@ -21,6 +21,7 @@ def single_comparator(page):
         #only trying one layer of redirect
         try:
             wikitext = redir_target.get()
+            comparands['redirect'] = redir_target.title()
         except:
             return None
             #log this
@@ -52,7 +53,7 @@ def comparator(compare_string):
     
 
 def make_family(server_name):
-    parts = server_name.split('.')
+    parts = map(lambda x: x.lower(), server_name.split('.'))
     if parts[0] == 'commons':
         return ('commons','commons')
     if parts[1] == 'wikidata':
