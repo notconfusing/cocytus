@@ -11,7 +11,6 @@ from config import REDIS_LOCATION, HEARTBEAT_INTERVAL
 logging.basicConfig(filename='logs/input.log', level=logging.INFO, format='%(asctime)s %(message)s')
 logging.info('cocytus-input launched')
 
-
 redis_con = Redis(host=REDIS_LOCATION)
 
 queue = Queue('changes', connection = redis_con)
