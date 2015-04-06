@@ -10,14 +10,14 @@ def push_to_crossref(rcdict):
             server_url = rcdict['server_url']
             safe_title = urllib.quote(rcdict['title'].encode('utf-8'))
             article_url = url = "{server_url}/wiki/{safe_title}".format(server_url=server_url, safe_title=safe_title) 
-            time = rcdict['time']
+            diff = rcdict['revision']['new']
 
             response = requests.post(PUSH_API_URL, json={"doi": doi,
                                               "source": PUSH_SOURCE,
                                               "type": PUSH_TYPE,
                                               "arg1":action,
                                               "arg2":article_url,
-                                              "arg3":time}, headers= {"Token": PUSH_TOKEN})
+                                              "arg3":diff}, headers= {"Token": PUSH_TOKEN})
             return response
 
 def heartbeat():
