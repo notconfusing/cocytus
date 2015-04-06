@@ -5,6 +5,7 @@ EMAIL=di.franco@gmail.com
 DIR=/data/project/cocytus
 PYTHONPATH=$DIR/c-env/local/lib/python2.7/site-packages
 source $DIR/c-env/bin/activate
+cd $DIR/workspace
 
 for n in {input,output}
 do
@@ -16,8 +17,9 @@ for worker in {changes,failed}
 do
     for i in {1..12}
     do
-	jstart -N "$worker$i" -mem 2g -e $DIR/logs -o $DIR/logs\
-	 -continuous -l release=trusty rqworker --burst -u http://tools-redis:6379 $worker
+        jstart -N "$worker$i" -mem 2g -e $DIR/logs -o $DIR/logs\
+         -continuous -l release=trusty \
+         rqworker --path $DIR/workspace -u http://tools-redis:6379 $worker
     done
 done
 
