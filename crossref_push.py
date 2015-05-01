@@ -21,11 +21,11 @@ def push_to_crossref(rcdict):
             return response
 
 def heartbeat():
-    return requests.post(PUSH_API_URL, json={"heartbeat-type": input, "source": PUSH_SOURCE, "type": PUSH_TYPE},
+    return requests.post(PUSH_API_URL, json={"heartbeat-type": "input", "source": PUSH_SOURCE, "type": PUSH_TYPE},
                                        headers= {"Token": PUSH_TOKEN})
 
 def output_heartbeat():
-    return requests.post(PUSH_API_URL, json={"heartbeat-type": output, "source": PUSH_SOURCE, "type": PUSH_TYPE},
+    return requests.post(PUSH_API_URL, json={"heartbeat-type": "output", "source": PUSH_SOURCE, "type": PUSH_TYPE},
                                        headers= {"Token": PUSH_TOKEN})
 
 if __name__ == '__main__':
