@@ -40,10 +40,10 @@ since our highest level scripts use grid engine to manage the jobs.
 ## Launching
 
 + First steps
-  + start up the redis server (If you're running on wikimedia labs this is already running on tools-redis.)
+  + start up the redis server (If you're running on wikimedia labs this is already running on tools-redis.) If you're running your own, edit submit-cocytus.sh to point to it.
 
 + If you are using Sun Grid Engine or the like which is available on wikimedia labs:
-  + `bash submit-cocytus.sh` will start four workers on each of the main work queue and the failure queue; this is a sensible number to keep up with changes
+  + `bash submit-cocytus.sh` will start sixteen workers on each of the main work queue and the failure queue; this is a sensible number to keep up with changes
   + `bash killgrid.sh` will delete all the current users jobs which will stop the queue workers
 
 + If you want to manually manage the jobs instead of using the Grid Engine the flow goes like this (see `submit-cocytus.sh` for relevant job parameters:
@@ -61,4 +61,3 @@ Logs will go into the `logs` subdirectory of where the processes are launched.
 + listening for and publishing arbitrary changes
 + summary information about changes
 + natural language modelling of changing wikipedia discourse informed by changes stream
-+ investigate halfak's [high performance regex parser](https://github.com/halfak/Extract-scholarly-article-citations-from-Wikipedia/blob/master/mwcites/extractors/doi.py)
