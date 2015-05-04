@@ -35,7 +35,7 @@ signal.alarm(alarm_interval)
 
 redis_con = Redis(REDIS_LOCATION)
 
-queue = Queue('changes', connection = redis_con)
+queue = Queue('changes', connection = redis_con, default_timeout = 10) #seconds
 
 class WikiCiteServer(ApplicationSession):
 	@inlineCallbacks

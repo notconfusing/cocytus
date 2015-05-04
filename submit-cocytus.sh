@@ -15,7 +15,7 @@ done
 #launch somes workers on changes
 for worker in {changes,failed}
 do
-    for i in {1..12}
+    for i in {1..16}
     do
         jstart -N "$worker$i" -mem 2g -e $DIR/logs -o $DIR/logs\
          -continuous -l release=trusty \

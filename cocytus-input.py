@@ -13,7 +13,7 @@ logging.info('cocytus-input launched')
 
 redis_con = Redis(host=REDIS_LOCATION)
 
-queue = Queue('changes', connection = redis_con)
+queue = Queue('changes', connection = redis_con, default_timeout = 10) #seconds
 logging.info('redis connected')
 
 alarm_interval = HEARTBEAT_INTERVAL # 10 minutes, in prime seconds
