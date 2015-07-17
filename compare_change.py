@@ -53,7 +53,7 @@ def comparator(compare_string):
     
 
 def make_family(server_name):
-    parts = map(lambda x: x.lower(), server_name.split('.'))
+    parts = [x.lower() for x in server_name.split('.')]
     if parts[0] == 'commons':
         return ('commons','commons')
     if parts[1] == 'wikidata':
@@ -111,11 +111,11 @@ def get_changes(rcdict):
 if __name__ == '__main__':
     #test
 
-    print get_changes({u'comment': u'sp, replaced: Bogomolov Jr. \u2192 Bogomolov jr. (5), Santiago Ventura Bertomeu \u2192 Santiago Ventura met [[Project:AWB|AWB]]', u'wiki': u'nlwiki', u'type': u'edit', u'server_name': u'nl.wikipedia.org', u'server_script_path': u'/w', u'timestamp': 1420063846, u'title': u'ATP-toernooi van Newport 2009', u'namespace': 0, u'server_url': u'http://nl.wikipedia.org', u'length': {u'new': 10649, u'old': 10658}, u'user': u'Den Hieperboree', u'patrolled': False, u'bot': False, u'id': 66286621, u'minor': False, u'revision': {u'new': 42892757, u'old': 36109902}})
-    print get_changes({'revision':{'old':638680435,'new':638682695}, 'server_name':'en.wikipedia.org', 'type':'edit'})
-    print get_changes({'revision':{'old':638680344,'new':638680435}, 'server_name':'en.wikipedia.org', 'type':'edit'})
-    print get_changes({'revision':{'old':None,'new':638680344}, 'server_name':'en.wikipedia.org', 'type':'new', 'title':'User:Maximilianklein/cocytusbox'})
-    print get_changes({'revision':{'old':639823863,'new':640446344}, 'server_name':'en.wikipedia.org', 'type':'edit'})
+    print(get_changes({'comment': 'sp, replaced: Bogomolov Jr. \\u2192 Bogomolov jr. (5), Santiago Ventura Bertomeu \\u2192 Santiago Ventura met [[Project:AWB|AWB]]', 'wiki': 'nlwiki', 'type': 'edit', 'server_name': 'nl.wikipedia.org', 'server_script_path': '/w', 'timestamp': 1420063846, 'title': 'ATP-toernooi van Newport 2009', 'namespace': 0, 'server_url': 'http://nl.wikipedia.org', 'length': {'new': 10649, 'old': 10658}, 'user': 'Den Hieperboree', 'patrolled': False, 'bot': False, 'id': 66286621, 'minor': False, 'revision': {'new': 42892757, 'old': 36109902}}))
+    print(get_changes({'revision':{'old':638680435,'new':638682695}, 'server_name':'en.wikipedia.org', 'type':'edit'}))
+    print(get_changes({'revision':{'old':638680344,'new':638680435}, 'server_name':'en.wikipedia.org', 'type':'edit'}))
+    print(get_changes({'revision':{'old':None,'new':638680344}, 'server_name':'en.wikipedia.org', 'type':'new', 'title':'User:Maximilianklein/cocytusbox'}))
+    print(get_changes({'revision':{'old':639823863,'new':640446344}, 'server_name':'en.wikipedia.org', 'type':'edit'}))
 
     '''
     testfile = open('dumps.txt','r')

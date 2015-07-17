@@ -1,9 +1,14 @@
 import requests
 import urllib
+import logging
 from PUSH_TOKEN_SECRET import PUSH_TOKEN
 from config import *
 
 def push_to_crossref(rcdict):
+    # just printing for debugging purposes
+    logging.info(str(rcdict))
+    return "yay"
+    # real code below
     for  addremove, doi_list in rcdict['doi'].iteritems():
         for doi in doi_list:
             action = {'added':'add','deleted':'remove'}[addremove]
@@ -21,10 +26,18 @@ def push_to_crossref(rcdict):
             return response
 
 def heartbeat():
+    # printing for debugging purposes
+    logging.info("heartbeated")
+    return "heart"
+    # real code below
     return requests.post(PUSH_API_URL, json={"heartbeat-type": "input", "source": PUSH_SOURCE, "type": PUSH_TYPE},
                                        headers= {"Token": PUSH_TOKEN})
 
 def output_heartbeat():
+    # printing for debugging purposes
+    logging.info("heartbeated2")
+    return "heart2"
+    # real code below
     return requests.post(PUSH_API_URL, json={"heartbeat-type": "output", "source": PUSH_SOURCE, "type": PUSH_TYPE},
                                        headers= {"Token": PUSH_TOKEN})
 
