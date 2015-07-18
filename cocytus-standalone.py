@@ -4,7 +4,7 @@ import socketIO_client
 import time
 import signal
 import logging
-from concurrent.futures import ThreadPoolExecutor as PoolExecutor # can do either ProcessPoolEx.. or ThreadPoolEx..
+from concurrent.futures import ThreadPoolExecutor # Must use ThreadPoolEx.. because we use shared state
 from config import HEARTBEAT_INTERVAL
 
 logging.basicConfig(filename='logs/cocytus.log', level=logging.INFO, format='%(asctime)s %(message)s')
@@ -28,10 +28,9 @@ class Queue:
   """not really a work queue just a wrapper for interface compatibility with old redis queue
      submits jobs directly to child workers, no intermediate queue is involved"""
   def __init__(self):
-    self.pool = PoolExecutor(max_workers = 64)
-    self.live_futures = set()
+    self.pool = ThreadPoolExecutor(max_workers = 64)
+    self.live_futures = set() # hold references to live jobs so they are not garbage collected
   def enqueue(self, job, arg = None):
-    logging.info("live futures are: "+str(len(self.live_futures)))
     future = self.pool.submit(job, arg)
     self.live_futures.add(future)
     future.add_done_callback(lambda f: (handle_result(f.result(timeout = 30)), self.live_futures.remove(f)))
