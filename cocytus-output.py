@@ -11,7 +11,7 @@ from rq import Queue
 from redis import Redis
 from config import REDIS_LOCATION, HEARTBEAT_INTERVAL
 
-from crossref_push import push_to_crossref
+from crossref_push import push_to_crossref, query_crossref_license_data
 
 import logging
 logging.basicConfig(filename='output.log', level=logging.INFO,  format='%(asctime)s %(message)s')
@@ -54,7 +54,7 @@ class WikiCiteServer(ApplicationSession):
 while True:
 	job = queue.dequeue()
 	if job is None:
-		print('no job ffound yet, sleeping')
+		print('no job found yet, sleeping')
 		logging.debug(u'No job found yet, sleeping')
 		time.sleep(1)
 		continue
@@ -66,6 +66,9 @@ while True:
 	print("Job result is "+str(job.result))
 	if 'doi' in job.result and isinstance(job.result['doi'], dict) and (job.result['doi']['added'] or job.result['doi']['deleted']): # one is not empty
 		logging.info(u'change detected: '+str(job.result))
+		# query crossref api for license info
+		if job.result['doi']['added']:
+			logging.info(u'finding licenses: '+[query_crossref_license_data(d) for d in job.result['doi']['added']]
 		#and we have something intriquing to push to crossref
 		print("pushing to crossref")
 		crossref_response = push_to_crossref(job.result)

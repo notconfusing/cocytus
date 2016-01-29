@@ -41,6 +41,16 @@ def output_heartbeat():
     return requests.post(PUSH_API_URL, json={"heartbeat-type": "output", "source": PUSH_SOURCE, "type": PUSH_TYPE},
                                        headers= {"Token": PUSH_TOKEN})
 
+def query_crossref_license_data(doi):
+    # https://github.com/CrossRef/rest-api-doc/blob/master/rest_api.md
+    response = requests.get('https://api.crossref.org/works/'+doi)
+    try:
+        j = response.json()
+        record  = j['message']
+        return record['license'] if 'license' in record.keys() else None
+    except Exception:
+        return None
+
 if __name__ == '__main__':
     #Test
     rcdicts = [{u'comment': u'Reverted 2 edits by [[Special:Contributions/Sciencenerd345|Sciencenerd345]] ([[User talk:Sciencenerd345|talk]]) to last revisioby JorisvS. ([[WP:TW|TW]])', u'wiki': u'enwiki', 'doi': {'deleted': [], 'added': [u'10.1088/0004-637X/736/1/19']}, u'server_name': u'en.wikipedia.org', u'title': u'Kepler-69c', u'timestamp': 1421979373, u'server_script_path': u'/w', u'namespace': 0, u'server_url': u'http://en.wikipedia.org', u'id': 708217572, u'length': {u'new': 13335, u'old': 5262}, u'user': u'Drbogdan', u'type': u'edit', u'bot': False, u'minor': True, u'revision': {u'new': 643758872, u'old': 643755255}}]
